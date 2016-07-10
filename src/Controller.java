@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.ObjectInputStream.GetField;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
@@ -23,7 +24,8 @@ import javax.security.auth.login.Configuration;
 import javax.swing.SortingFocusTraversalPolicy;
 
 public class Controller {
-	private String session = getSession();
+	private String fid = getAllFile("config/fid.txt");
+	private String session = getAllFile("config/session.txt");
 
 	public String sendGet(String url) {
         String result = "";
@@ -67,7 +69,7 @@ public class Controller {
 	
 	private String getTableString(String s) {
 		String result = "";
-		String[] sp1 = s.split("<table summary=\"forum_554\".*?>");
+		String[] sp1 = s.split("<table summary=\"forum_" + fid + "\".*?>");
 		if (sp1.length >= 2) {
 			String[] sp2 = sp1[1].split("</table>");
 			result = sp2[0];
@@ -158,7 +160,7 @@ public class Controller {
 	
 	public Vector<ForumThread> getData(int i) {
 		long nowTime = new Date().getTime();
-		String s = sendGet("http://bbs.pcbeta.com/forum.php?mod=forumdisplay&fid=554&orderby=dateline&filter=author&orderby=dateline&page=" + i);
+		String s = sendGet("http://bbs.pcbeta.com/forum.php?mod=forumdisplay&fid=" + fid + "&orderby=dateline&filter=author&orderby=dateline&page=" + i);
 		String tableString = getTableString(s);
 		Vector<ForumThread> threads = getThreads(tableString);
 		return threads;
@@ -192,9 +194,9 @@ public class Controller {
 		return result;
 	}
 	
-	public String getSession() {
+	public String getAllFile(String filepath) {
 		String result = "";
-		File f = new File("config/session.txt");
+		File f = new File(filepath);
 		BufferedReader reader = null;
 		try {
 			reader = new BufferedReader(new FileReader(f));
