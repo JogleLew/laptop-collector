@@ -37,6 +37,6 @@ public class ForumThread {
 		this.createTime = createTime;
 	}
 	public String toString() {
-		return title + "\n" + author + " | http://bbs.pcbeta.com/viewthread-" + tid + "-1-1.html\n\n";
+		return title + System.getProperty("line.separator") + author + " | http://bbs.pcbeta.com/viewthread-" + tid + "-1-1.html" + System.getProperty("line.separator") + System.getProperty("line.separator");
 	}
 }

@@ -23,6 +23,7 @@ import javax.security.auth.login.Configuration;
 import javax.swing.SortingFocusTraversalPolicy;
 
 public class Controller {
+	private String session = getSession();
 
 	public String sendGet(String url) {
         String result = "";
@@ -37,31 +38,7 @@ public class Controller {
             connection.setRequestProperty("connection", "Keep-Alive");
             connection.setRequestProperty("user-agent",
                     "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
-            connection.setRequestProperty("Cookie", 
-            		"Hm_lpvt_76c941eab16e9b48cd0fb4a6d9482a4f=1467805787; "
-            		+ "Hm_lvt_76c941eab16e9b48cd0fb4a6d9482a4f=1467776841,1467781215,1467791096,1467804692; "
-            		+ "__cfduid=d3ab7c1111aaeddf14a5110ad1eab8f861440588965; "
-            		+ "_ga=GA1.2.1543143282.141716; "
-            		+ "_gat=1; "
-            		+ "jqCP_887f_auth=f3ecAdBIdteaTLwxukjkFtM2Z7ACqRaOIdtqKZHqAG3EMR424GxYlFwOH%2BkVkwVC52GYz0RnEgWhoFPba9lZEE2R0bk; "
-            		+ "jqCP_887f_checkpm=1; "
-            		+ "jqCP_887f_forum_lastvisit=D_557_1467781222D_554_1467805786; "
-            		+ "jqCP_887f_home_readfeed=1466172476; "
-            		+ "jqCP_887f_lastact=1467805786%09home.php%09spacecp; "
-            		+ "jqCP_887f_lastvisit=1467801433; "
-            		+ "jqCP_887f_mobile=no; "
-            		+ "jqCP_887f_mrd=%09; "
-            		+ "jqCP_887f_pvi=1803909953; "
-            		+ "jqCP_887f_saltkey=cDSNc1TC; "
-            		+ "jqCP_887f_sendmail=1; "
-            		+ "jqCP_887f_sid=kjmCR2; "
-            		+ "jqCP_887f_smile=5D1; "
-            		+ "jqCP_887f_ulastactivity=9eb6aWctbWnlOQhMbVLSxs4ndu45BnhtXcX1UAvIDWLvkE972pNe; "
-            		+ "jqCP_887f_uuid=723618; "
-            		+ "jqCP_887f_zantip=1; "
-            		+ "pgv_info=ssi=s9382113800; "
-            		+ "pgv_pvi=9878400950"
-            );
+            connection.setRequestProperty("Cookie", session);
             // 建立实际的连接
             connection.connect();
             
@@ -213,5 +190,31 @@ public class Controller {
 			}
 		}
 		return result;
+	}
+	
+	public String getSession() {
+		String result = "";
+		File f = new File("config/session.txt");
+		BufferedReader reader = null;
+		try {
+			reader = new BufferedReader(new FileReader(f));
+			String s = ".";
+			while (true) {
+				s = reader.readLine();
+				if (s == null)
+					break;
+				s = s.trim();
+				result += s + " ";
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				reader.close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		return result.trim();
 	}
 }

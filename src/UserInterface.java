@@ -1,3 +1,6 @@
+import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -7,6 +10,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.EventObject;
 import java.util.HashMap;
 import java.util.Vector;
 import java.util.regex.Matcher;
@@ -22,7 +26,11 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.event.CellEditorListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumnModel;
 
 public class UserInterface extends JFrame {
@@ -116,6 +124,7 @@ public class UserInterface extends JFrame {
 			public void actionPerformed(ActionEvent e) {
 				updateButton.setEnabled(false);
 				updateButton.setText("正在抓取...");
+				tableModel.setRowCount(0);
 				String[] sp = lastUpdatedTime.getText().split("-");
 				Date date = new Date(Integer.parseInt(sp[0]), Integer.parseInt(sp[1]) - 1, Integer.parseInt(sp[2]));
 				BackgroundThread thread = new BackgroundThread(date.getTime());
