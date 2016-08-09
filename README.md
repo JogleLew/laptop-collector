@@ -15,7 +15,7 @@ File `laptop.jar` is a runnable JAR file, and configuarion files are needed.
 
 ## Configuarion
 
-the folder `config` should be placed in the same folder with the file `laptop.jar`.
+the folder `config` should be placed in the same folder as the file `laptop.jar`.
 
 `fid.txt` used to store the fid, for macOS Sierra, it is 557.
 
@@ -23,6 +23,6 @@ the folder `config` should be placed in the same folder with the file `laptop.ja
 
 `threads.txt` used to store the threads to write. Every line of this file is `fid,tid,pid,page` illustrating a "floor" of forum. You should be the author of the "floor" due to the permission.
 
-`value.txt` used to tore the regex and the weight for the filter. Every line of this file is `regex=weight`.
+`value.txt` used to store the regex and the weight for the filter. Every line of this file is `regex=weight`.
 
 `data.txt` is a local stoage of laptop infomation, using the JSON format.
