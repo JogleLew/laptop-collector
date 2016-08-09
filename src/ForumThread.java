@@ -1,3 +1,5 @@
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class ForumThread {
 	private String tid;
@@ -5,6 +7,47 @@ public class ForumThread {
 	private String uid;
 	private String author;
 	private String createTime;
+	
+	public ForumThread() {
+		tid = "";
+		title = "";
+		uid = "";
+		author = "";
+		createTime = "";
+	}
+	
+	public ForumThread(JSONObject object) {
+		try {
+			tid = object.getString("tid");
+			title = object.getString("title");
+			uid = object.getString("uid");
+			author = object.getString("author");
+			createTime = object.getString("createTime");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public JSONObject toJsonObject() {
+		try {
+			JSONObject object = new JSONObject();
+			object.put("tid", tid);
+			object.put("title", title);
+			object.put("uid", uid);
+			object.put("author", author);
+			object.put("createTime", createTime);
+			return object;
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	
+	public String toForumDoc() {
+		String string = "[url=http://bbs.pcbeta.com/viewthread-" + tid + "-1-1.html]" + title + "[/url]\r\n"
+				+ "作者: [url=http://i.pcbeta.com/?" + uid + "]" + author + "[/url] | " + createTime + "\r\n\r\n";
+		return string;
+	}
 	
 	public String getTid() {
 		return tid;

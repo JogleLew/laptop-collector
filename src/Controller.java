@@ -1,31 +1,25 @@
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.ObjectInputStream.GetField;
-import java.net.HttpURLConnection;
+import java.io.PrintWriter;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.ArrayList;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Vector;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.net.ssl.SSLException;
-import javax.security.auth.login.Configuration;
-import javax.swing.SortingFocusTraversalPolicy;
 
 public class Controller {
 	private String fid = getAllFile("config/fid.txt");
 	private String session = getAllFile("config/session.txt");
+	private DataSet data = new DataSet(getAllFile("config/data.txt"));
+	private String threadInfo = getAllFile("config/threads.txt");
 
 	public String sendGet(String url) {
         String result = "";
@@ -45,7 +39,7 @@ public class Controller {
             connection.connect();
             
             // 定义 BufferedReader输入流来读取URL的响应
-            in = new BufferedReader(new InputStreamReader(connection.getInputStream(),"GB2312"));
+            in = new BufferedReader(new InputStreamReader(connection.getInputStream(),"GBK"));
             String line;
             while ((line = in.readLine()) != null) {
                 result += line;
@@ -66,6 +60,118 @@ public class Controller {
         }
         return result;
     }
+	
+	public String sendPost(String url, String param) {
+        PrintWriter out = null;
+        BufferedReader in = null;
+        String result = "";
+        try {
+            URL realUrl = new URL(url);
+            // 打开和URL之间的连接
+            URLConnection conn = realUrl.openConnection();
+            // 设置通用的请求属性
+            conn.setRequestProperty("accept", "*/*");
+            conn.setRequestProperty("connection", "Keep-Alive");
+            conn.setRequestProperty("user-agent",
+                    "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1;SV1)");
+            conn.setRequestProperty("Cookie", session);
+            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryqVqtFrpj2wyX6aOR");
+            // 发送POST请求必须设置如下两行
+            conn.setDoOutput(true);
+            conn.setDoInput(true);
+            // 获取URLConnection对象对应的输出流
+            out = new PrintWriter(new OutputStreamWriter(conn.getOutputStream(), "GBK"));
+            // 发送请求参数
+            out.print(param);
+            // flush输出流的缓冲
+            out.flush();
+            // 定义BufferedReader输入流来读取URL的响应
+            in = new BufferedReader(
+                    new InputStreamReader(conn.getInputStream(), "GBK"));
+            String line;
+            while ((line = in.readLine()) != null) {
+                result += line;
+            }
+        } catch (Exception e) {
+            System.out.println("发送 POST 请求出现异常！"+e);
+            e.printStackTrace();
+        }
+        //使用finally块来关闭输出流、输入流
+        finally{
+            try{
+                if(out!=null){
+                    out.close();
+                }
+                if(in!=null){
+                    in.close();
+                }
+            }
+            catch(IOException ex){
+                ex.printStackTrace();
+            }
+        }
+        return result;
+    }
+
+	public boolean writeToForum(String fid, String tid, String pid, String page, String msg) {
+		String result1 = sendGet("http://bbs.pcbeta.com/forum.php?mod=post&action=edit&fid=" + fid + "&tid=" + tid + "&pid=" + pid + "&page=" + page);
+		
+		int index1 = result1.indexOf("<input type=\"hidden\" name=\"formhash\" id=\"formhash\" value=\"");
+		index1 += "<input type=\"hidden\" name=\"formhash\" id=\"formhash\" value=\"".length();
+		int index2 = index1;
+		while (result1.charAt(index2) != '\"')
+			index2++;
+		String formhash = result1.substring(index1, index2);
+		
+		index1 = result1.indexOf("<input type=\"hidden\" name=\"posttime\" id=\"posttime\" value=\"");
+		index1 += "<input type=\"hidden\" name=\"posttime\" id=\"posttime\" value=\"".length();
+		index2 = index1;
+		while (result1.charAt(index2) != '\"')
+			index2++;
+		String posttime = result1.substring(index1, index2);
+		
+		String result2 = sendPost("http://bbs.pcbeta.com/forum.php?mod=post&action=edit&extra=&editsubmit=yes", 
+				getPostString(formhash, posttime, fid, tid, pid, page, msg));
+		if (result2.contains("帖子编辑成功"))
+			return true;
+		return false;
+	}
+	
+	private String getPostString(String formhash, String posttime, String fid, String tid, String pid, String page, String msg) {
+		StringBuilder string = new StringBuilder();
+		String boundary = "------WebKitFormBoundaryqVqtFrpj2wyX6aOR\r\n";
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"formhash\"\r\n\r\n" + formhash + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"posttime\"\r\n\r\n" + posttime + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"delattachop\"\r\n\r\n" + 0 + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"wysiwyg\"\r\n\r\n" + 1 + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"fid\"\r\n\r\n" + fid + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"tid\"\r\n\r\n" + tid + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"pid\"\r\n\r\n" + pid + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"page\"\r\n\r\n" + 1 + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"subject\"\r\n\r\n" + "" + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"message\"\r\n\r\n" + msg + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"editsubmit\"\r\n\r\n" + true + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"save\"\r\n\r\n" + 0 + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"uploadalbum\"\r\n\r\n" + 2043 + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"newalbum\"\r\n\r\n" + "" + "\r\n");
+		string.append(boundary);
+		string.append("Content-Disposition: form-data; name=\"usesig\"\r\n\r\n" + 1 + "\r\n");
+		return string.toString();
+	}
 	
 	private String getTableString(String s) {
 		String result = "";
@@ -159,7 +265,6 @@ public class Controller {
 	}
 	
 	public Vector<ForumThread> getData(int i) {
-		long nowTime = new Date().getTime();
 		String s = sendGet("http://bbs.pcbeta.com/forum.php?mod=forumdisplay&fid=" + fid + "&orderby=dateline&filter=author&orderby=dateline&page=" + i);
 		String tableString = getTableString(s);
 		Vector<ForumThread> threads = getThreads(tableString);
@@ -194,6 +299,32 @@ public class Controller {
 		return result;
 	}
 	
+	public DataSet getDataSet() {
+		return data;
+	}
+
+	public boolean writeLocalDataSet() {
+		String string = data.toFileString();
+		boolean flag = true;
+		try {
+			File file = new File("config/data.txt");
+			BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+			writer.write(string);
+			writer.close();
+			
+			SimpleDateFormat sdf = new SimpleDateFormat("_yyyyMMdd_HHmmss");
+			File file2 = new File("config/data" + sdf.format(new Date())+ ".txt");
+			BufferedWriter writer2 = new BufferedWriter(new FileWriter(file2));
+			writer2.write(string);
+			writer2.close();
+			
+		} catch (IOException e) {
+			flag = false;
+			e.printStackTrace();
+		}
+		return flag;
+	}
+	
 	public String getAllFile(String filepath) {
 		String result = "";
 		File f = new File(filepath);
@@ -218,5 +349,9 @@ public class Controller {
 			}
 		}
 		return result.trim();
+	}
+
+	public String getThreadInfo() {
+		return threadInfo;
 	}
 }
